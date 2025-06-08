@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visual C++ Matrix Simulator</title>
+    <title>Dynamic C++ Matrix Simulator</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { height: 100%; }
@@ -15,54 +15,22 @@
         .logo { font-size: 1.5rem; font-weight: bold; color: #667eea; }
         .grid-section, .code-section { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 16px; padding: 2rem; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
         .section-title { font-size: 1.3rem; font-weight: bold; margin-bottom: 1.5rem; color: #667eea; }
-        .visual-grid { 
-            display: grid; 
-            gap: 5px; 
-            margin-top: 2rem; 
-            justify-content: center; 
-            background: #ddd; 
-            padding: 5px; 
-            border-radius: 8px; 
-        }
-        .visual-grid.grid-3x3 { 
-            grid-template-columns: repeat(3, 100px); 
-            grid-template-rows: repeat(3, 100px); 
-        }
-        .grid-cell { 
-            border-radius: 4px; 
-            position: relative; 
-            transition: all 0.4s ease-in-out; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            color: white; 
-            font-size: 2.5rem; 
-            font-weight: bold; 
-            text-shadow: 0 0 5px rgba(0,0,0,0.5); 
-        }
-        .code-editor { 
-            width: 100%; 
-            height: 450px; 
-            font-family: Consolas, 'Courier New', 'Droid Arabic Kufi', monospace;
-            font-size: 14px; 
-            padding: 1rem; 
-            border: 2px solid #ddd; 
-            border-radius: 8px; 
-            resize: vertical; 
-            background: #f8f9fa; 
-            line-height: 1.6; 
-        }
+        .size-controls { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .size-controls label { font-weight: 500; }
+        .size-controls input[type="number"] { width: 60px; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 1rem; }
+        .size-controls button { padding: 8px 16px; border-radius: 6px; border: none; background-color: #667eea; color: white; font-weight: bold; cursor: pointer; transition: background-color 0.3s; }
+        .size-controls button:hover { background-color: #5a6fd7; }
+        .visual-grid { display: grid; gap: 5px; justify-content: center; background: #ddd; padding: 5px; border-radius: 8px; }
+        .grid-cell { border-radius: 4px; position: relative; transition: all 0.4s ease-in-out; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold; text-shadow: 0 0 5px rgba(0,0,0,0.5); min-height: 60px; }
+        .code-editor { width: 100%; height: 450px; font-family: Consolas, 'Courier New', monospace; font-size: 14px; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; resize: vertical; background: #f8f9fa; line-height: 1.6; }
         .button-container { display: flex; gap: 1rem; margin-top: 1rem; }
-        .execute-btn, .reset-btn { flex-grow: 1; border: none; padding: 1rem 1.5rem; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold; transition: transform 0.2s ease; margin-top:0; }
+        .execute-btn, .reset-btn { flex-grow: 1; border: none; padding: 1rem 1.5rem; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold; }
         .execute-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
         .reset-btn { background: #6c757d; color: white; }
-        .execute-btn:disabled, .reset-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .matrix-display { display: flex; gap: 2rem; align-items: flex-start; flex-wrap: wrap; }
         .matrix-box { background: #f8f9fa; border-radius: 8px; padding: 1rem; border: 2px solid #ddd; }
         .matrix-title { font-weight: bold; margin-bottom: 0.5rem; color: #667eea; }
-        .matrix-grid { display: grid; gap: 4px; }
-        .matrix-grid.grid-3x3 { grid-template-columns: repeat(3, 40px); }
-        .error-message { background: #fee; border: 1px solid #fcc; color: #c00; padding: 1rem; border-radius: 8px; margin-top: 1rem; white-space: pre-wrap; text-align: left; font-family: 'Courier New', monospace; }
+        .error-message { background: #fee; border: 1px solid #fcc; color: #c00; padding: 1rem; border-radius: 8px; margin-top: 1rem; white-space: pre-wrap; text-align: left; }
         .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin-left: 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .site-footer {
@@ -115,16 +83,19 @@
 </head>
 <body>
     <div class="wrapper">
-        <div class="header">
-            <div class="logo">Visual C++ Matrix Simulator</div>
-        </div>
-
+        <div class="header"><div class="logo">Dynamic C++ Matrix Simulator</div></div>
         <div class="main-container">
             <div class="grid-section">
-                <h2 class="section-title">Visual Grid (3x3)</h2>
-                <div id="visualGrid" class="visual-grid grid-3x3"></div>
+                <h2 class="section-title">Visual Grid</h2>
+                <div class="size-controls">
+                    <label for="rowsInput">Rows:</label>
+                    <input type="number" id="rowsInput" value="3" min="2" max="10">
+                    <label for="colsInput">Cols:</label>
+                    <input type="number" id="colsInput" value="3" min="2" max="10">
+                    <button id="generateGridBtn">Generate Grid</button>
+                </div>
+                <div id="visualGrid" class="visual-grid"></div>
             </div>
-
             <div class="code-section">
                 <h2 class="section-title">C++ Code Editor</h2>
                 <textarea id="codeEditor" class="code-editor"></textarea>
@@ -134,7 +105,6 @@
                 </div>
             </div>
         </div>
-
         <div class="result-section">
             <h2 class="section-title">Output</h2>
             <div class="matrix-display" id="matrixDisplay"></div>
@@ -168,40 +138,77 @@
 
     <script>
         let originalMatrix = [];
-        
+        let numRows = 3;
+        let numCols = 3;
+
         const visualGrid = document.getElementById('visualGrid');
         const codeEditor = document.getElementById('codeEditor');
         const executeBtn = document.getElementById('executeBtn');
         const resetBtn = document.getElementById('resetBtn');
         const matrixDisplay = document.getElementById('matrixDisplay');
         const errorMessage = document.getElementById('errorMessage');
+        const rowsInput = document.getElementById('rowsInput');
+        const colsInput = document.getElementById('colsInput');
+        const generateGridBtn = document.getElementById('generateGridBtn');
 
-        const defaultCode = `// C++ Code
-#include <iostream>
-#include <utility> 
+        generateGridBtn.addEventListener('click', generateNewGrid);
+        executeBtn.addEventListener('click', () => executeCode(codeEditor.value));
+        resetBtn.addEventListener('click', resetState);
 
-/*
-    التعليمات:
-    - اكتب كود C++ لمصفوفة 3x3 (أرقامها 1-9).
-    - اطبع المصفوفة النهائية مع وضع مسافة " " بين الأرقام.
-*/
+        function generateNewGrid() {
+            numRows = parseInt(rowsInput.value, 10);
+            numCols = parseInt(colsInput.value, 10);
+
+            if (isNaN(numRows) || isNaN(numCols) || numRows < 1 || numCols < 1) {
+                showError("Invalid row or column count.");
+                return;
+            }
+
+            originalMatrix = [];
+            let counter = 1;
+            for (let i = 0; i < numRows; i++) {
+                const row = [];
+                for (let j = 0; j < numCols; j++) {
+                    row.push(counter++);
+                }
+                originalMatrix.push(row);
+            }
+            
+            updateDefaultCode(numRows, numCols);
+            updateDisplay(originalMatrix);
+            matrixDisplay.innerHTML = '';
+            displayMatrix('Initial Matrix', originalMatrix);
+        }
+
+        function updateDefaultCode(rows, cols) {
+            const defaultCode = `#include <iostream>
+#include <vector>
+#include <utility>
+
+// Your code should work with a ${rows}x${cols} matrix.
+// The visualizer expects ${rows * cols} numbers in the output.
+// Numbering starts from 1.
 
 int main() {
-    // عرف مصفوفتك هنا بالأرقام من 1 إلى 9
-    int matrix[3][3] = {
-        {1, 2, 3},
-        {4, 5, 6},
-        {7, 8, 9}
-    };
+    const int ROWS = ${rows};
+    const int COLS = ${cols};
+    int matrix[ROWS][COLS];
 
-    // --- اكتب منطقك الخاص هنا ---
+    // Initialize matrix with values 1, 2, 3, ...
+    int counter = 1;
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLS; j++) {
+            matrix[i][j] = counter++;
+        }
+    }
+
+    // --- Your logic here ---
+    // Example: do nothing
     
-    // --- نهاية منطقك الخاص ---
 
-
-    // اطبع المصفوفة النهائية هنا
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
+    // Print the final matrix (required)
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLS; j++) {
             std::cout << matrix[i][j] << " ";
         }
         std::cout << std::endl;
@@ -209,21 +216,7 @@ int main() {
     
     return 0;
 }`;
-        
-        codeEditor.value = defaultCode;
-        
-        executeBtn.addEventListener('click', () => executeCode(codeEditor.value));
-        resetBtn.addEventListener('click', resetState);
-
-        function createInitialGrid() {
-            originalMatrix = [
-                [1, 2, 3],
-                [4, 5, 6],
-                [7, 8, 9]
-            ];
-            updateDisplay(originalMatrix);
-            matrixDisplay.innerHTML = '';
-            displayMatrix('Initial Matrix', originalMatrix);
+            codeEditor.value = defaultCode;
         }
 
         async function executeCode(userCode) {
@@ -234,7 +227,7 @@ int main() {
 
             executeBtn.disabled = true;
             resetBtn.disabled = true;
-            executeBtn.innerHTML = '⏳ Executing... <div class="loading"></div>';
+            executeBtn.innerHTML = '⏳ Executing...';
             clearError();
             
             const oldResult = document.querySelector('.matrix-box[data-title="Result Matrix"]');
@@ -256,15 +249,16 @@ int main() {
                 }
                 
                 const numberStrings = result.program_output.match(/-?\d+/g);
+                const expectedNumbers = numRows * numCols;
 
-                if (!numberStrings || numberStrings.length < 9) {
-                    throw new Error('Output does not contain at least 9 numbers to form a 3x3 matrix.');
+                if (!numberStrings || numberStrings.length < expectedNumbers) {
+                    throw new Error(`Output does not contain at least ${expectedNumbers} numbers.`);
                 }
 
-                const resultValues = numberStrings.slice(0, 9).map(Number);
+                const resultValues = numberStrings.slice(0, expectedNumbers).map(Number);
                 
                 const finalMatrix = [];
-                while(resultValues.length) finalMatrix.push(resultValues.splice(0,3));
+                while(resultValues.length) finalMatrix.push(resultValues.splice(0, numCols));
 
                 updateDisplay(finalMatrix);
                 displayMatrix('Result Matrix', finalMatrix);
@@ -279,27 +273,23 @@ int main() {
         }
         
         function resetState() {
-            updateDisplay(originalMatrix);
-            const resultBox = document.querySelector('.matrix-box[data-title="Result Matrix"]');
-            if (resultBox) {
-                resultBox.remove();
-            }
-            codeEditor.value = defaultCode;
-            clearError();
+            generateNewGrid();
         }
 
         function updateDisplay(matrix) {
             visualGrid.innerHTML = '';
-            const rowColors = ['#e74c3c', '#3498db', '#2ecc71']; // Red, Blue, Green
+            visualGrid.style.gridTemplateColumns = `repeat(${numCols}, minmax(40px, 1fr))`;
+            const rowColors = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#1abc9c', '#e67e22', '#34495e', '#ecf0f1', '#95a5a6'];
             const errorColor = '#7f8c8d'; // Gray
 
             matrix.flat().forEach(value => {
                 const cell = document.createElement('div');
                 cell.className = 'grid-cell';
-                
-                if (value >= 1 && value <= 9) {
-                    const originalRowIndex = Math.floor((value - 1) / 3);
-                    cell.style.backgroundColor = rowColors[originalRowIndex];
+
+                // Logic to handle 1-based indexing for coloring
+                if (value >= 1 && value <= numRows * numCols) {
+                    const originalRowIndex = Math.floor((value - 1) / numCols);
+                    cell.style.backgroundColor = rowColors[originalRowIndex % rowColors.length];
                 } else {
                     cell.style.backgroundColor = errorColor;
                 }
@@ -314,26 +304,21 @@ int main() {
             if(existingMatrix) existingMatrix.remove();
             const matrixBox = document.createElement('div');
             matrixBox.className = 'matrix-box';
-            matrixBox.setAttribute('data-title', title);
             const titleDiv = document.createElement('div');
             titleDiv.className = 'matrix-title';
             titleDiv.textContent = title;
-            const matrixGridDiv = document.createElement('div');
-            matrixGridDiv.className = `matrix-grid grid-3x3`;
-            matrix.forEach(row => row.forEach(cellValue => {
-                const cell = document.createElement('div');
-                cell.className = 'matrix-cell';
-                cell.textContent = cellValue;
-                matrixGridDiv.appendChild(cell);
-            }));
-            matrixBox.append(titleDiv, matrixGridDiv);
+            matrixBox.appendChild(titleDiv);
+            const pre = document.createElement('pre');
+            pre.style.textAlign = 'left';
+            pre.textContent = matrix.map(row => row.map(cell => String(cell).padStart(3, ' ')).join(' ')).join('\n');
+            matrixBox.appendChild(pre);
             matrixDisplay.appendChild(matrixBox);
         }
 
         function showError(message) { errorMessage.innerHTML = `<div class="error-message">❌ ${message}</div>`; }
         function clearError() { errorMessage.innerHTML = ''; }
 
-        window.onload = () => createInitialGrid();
+        window.onload = () => generateNewGrid();
     </script>
 </body>
 </html>
